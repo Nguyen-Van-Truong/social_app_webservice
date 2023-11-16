@@ -1,4 +1,5 @@
 <?php
+
 include_once '../../lib/DatabaseConnection.php';
 include_once '../../lib/PasswordManager.php';
 
@@ -15,11 +16,16 @@ function loginUser($email, $password) {
         $result = $stmt->get_result();
         if ($result->num_rows == 1) {
             $user = $result->fetch_assoc();
-            
+
             // Sử dụng PasswordManager để kiểm tra mật khẩu
             if (PasswordManager::verifyPassword($password, $user['password_hash'])) {
                 // Đăng nhập thành công
-                echo json_encode(["success" => true, "message" => "Đăng nhập thành công", "user_id" => $user['user_id']]);
+                // Tạo token cho người dùng
+                $token = bin2hex(random_bytes(16)); // Ví dụ tạo token ngẫu nhiên
+
+                // TODO: Lưu token vào database nếu cần
+
+                echo json_encode(["success" => true, "message" => "Đăng nhập thành công", "user_id" => $user['user_id'], "token" => $token]);
             } else {
                 // Sai mật khẩu
                 echo json_encode(["success" => false, "message" => "Sai mật khẩu"]);
