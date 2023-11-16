@@ -27,5 +27,5 @@ function getChatBetweenTwoUsers($user1, $user2) {
 }
 
 // Ví dụ: Lấy chat giữa user 1 và user 2
-getChatBetweenTwoUsers(1, 2);
+getChatBetweenTwoUsers(0, 1);
 ?>
