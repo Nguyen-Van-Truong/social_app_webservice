@@ -1,0 +1,66 @@
+1.xem binh luan: api\comments\getComments.php
+http://localhost/social_app_webservice/api/comments/getComments.php?postId=1&sortOrder=oldest
+2.gui binh luan: api\comments\postComment.php
+post:http://localhost/social_app_webservice/api/comments/postComment.php
+form-data:
+postId:1
+userId:1
+comment:hay
+3.gui ket ban api\friendships\sendFriendRequest.php
+post:http://localhost/social_app_webservice/api/friendships/sendFriendRequest.php
+form-data:
+user1:1
+user2:4
+4.dong y ket ban: api\friendships\acceptFriendRequest.php
+post:http://localhost/social_app_webservice/api/friendships/acceptFriendRequest.php
+form-data:
+userId:1
+friendId:4
+5.hien thi danh sach ban: api\friendships\getFriendsList.php
+get:http://localhost/social_app_webservice/api/friendships/getFriendsList.php?userId=1&sortOrder=recent
+sortOrder=recent: la danh sach ban be moi nhat
+ngoai recent thi sap xep tu cu toi moi
+6.lay ra so like 1 bai viet:api\likes\getLikesCount.php
+get:http://localhost/social_app_webservice/api/likes/getLikesCount.php?postId=1
+7.like bai viet: api\likes\likePost.php
+post:http://localhost/social_app_webservice/api/likes/likePost.php
+form-data:
+userId:1
+postId:5
+8.xem tin nhan:api\messages\read.php
+post:http://localhost/social_app_webservice/api/messages/read.php
+form-data:
+user1:1
+user2:3
+9.gui tin nhan:api\messages\sendMessage.php
+post:http://localhost/social_app_webservice/api/messages/sendMessage.php
+form-data:
+senderId:1
+receiverId:3
+message:xin chao ban, ban khoe khong
+10. tao bai viet:api\posts\createPost.php
+post:http://localhost/social_app_webservice/api/posts/createPost.php
+form-data:
+userId:1
+content:bai viet ve con ga
+visible:1
+visible 1 la hien thi, 2 la an
+11.dang nhap:api\users\login.php
+post:http://localhost/social_app_webservice/api/users/login.php
+form-data:
+email:truong@gmail.com
+password:1
+12.dang ky:api\users\register.php
+post:http://localhost/social_app_webservice/api/users/register.php
+form-data:
+username:gacon1
+email:ga@gmail.com
+password:1
+gender:1
+bio:toi la con ga
+13.xem tat ca cac bai viet
+get:http://localhost/social_app_webservice/api/posts/getPosts.php
+14.xem tat ca cac bai viet cua ban be
+post:http://localhost/social_app_webservice/api/posts/getFriendPosts.php
+form-data:
+userId:1
