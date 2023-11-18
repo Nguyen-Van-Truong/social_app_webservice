@@ -58,9 +58,54 @@ email:ga@gmail.com
 password:1
 gender:1
 bio:toi la con ga
-13.xem tat ca cac bai viet
+13.xem tat ca cac bai viet:api\posts\getPosts.php
 get:http://localhost/social_app_webservice/api/posts/getPosts.php
-14.xem tat ca cac bai viet cua ban be
+14.xem tat ca cac bai viet cua ban be:api\posts\getFriendPosts.php
 post:http://localhost/social_app_webservice/api/posts/getFriendPosts.php
 form-data:
 userId:1
+limit:2
+page:1
+15.gui tin nhan vao nhom chat:api\group_messages\sendMessage.php
+post:http://localhost/social_app_webservice/api/group_messages/sendMessage.php
+form-data:
+groupId:1
+senderId:1
+message:xin chao ca nhom
+ket qua:
+{
+    "success": true,
+    "message": "Tin nhắn đã được gửi"
+}
+16.hien thi tin nhan trong nhom:api\group_messages\getGroupMessages.php
+post:http://localhost/social_app_webservice/api/group_messages/getGroupMessages.php
+form-data:
+userId:1
+groupId:1
+limit:1
+page:2
+ket qua:
+{
+    "success": true,
+    "messages": [
+        {
+            "message_id": 2,
+            "group_id": 1,
+            "sender_id": 2,
+            "message": "Tin nhắn nhóm mẫu 2",
+            "retracted": 0,
+            "created_at": "2023-11-17 10:25:43"
+        }
+    ]
+}
+17.them thanh vien vao nhom:api\group_messages\addGroupMember.php
+post:http://localhost/social_app_webservice/api/group_messages/addGroupMember.php
+data-form:
+userId:3
+groupId:1
+result:
+{
+    "success": true,
+    "message": "Người dùng đã được thêm vào nhóm"
+}
+
