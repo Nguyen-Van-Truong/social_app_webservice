@@ -46,7 +46,6 @@ function getFriendPosts($userId, $page = 0, $limit = 10) {
         $stmt->bind_param(str_repeat('i', count($friendIds)) . 'ii', ...$params);
         $stmt->execute();
         $result = $stmt->get_result();
-        
         if ($result) {
             $posts = array();
 
