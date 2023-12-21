@@ -12,7 +12,7 @@ function getFriendPosts($userId, $page = 0, $limit = 10) {
     $conn = $db->connect();
 
     try {
-        // Truy vấn cơ sở dữ liệu để lấy danh sách bạn bè của người dùng
+        // Fetch friends' user IDs
         $sql = "SELECT user_id1, user_id2 FROM friendships WHERE user_id1 = ? OR user_id2 = ?";
         $stmt = $conn->prepare($sql);
         $stmt->bind_param("ii", $userId, $userId);
@@ -20,38 +20,40 @@ function getFriendPosts($userId, $page = 0, $limit = 10) {
         $result = $stmt->get_result();
 
         $friendIds = array();
-
         while ($row = $result->fetch_assoc()) {
-            if ($row['user_id1'] == $userId) {
-                $friendIds[] = $row['user_id2'];
-            } else {
-                $friendIds[] = $row['user_id1'];
-            }
+            $friendIds[] = ($row['user_id1'] == $userId) ? $row['user_id2'] : $row['user_id1'];
         }
+        $friendIds[] = $userId; // Include current user's ID
 
-        // Thêm cả user_id của người dùng hiện tại vào danh sách bạn bè
-        $friendIds[] = $userId;
-
-        // Sử dụng prepared statement để truy vấn bảng posts
+        // Fetch posts
         $placeholders = implode(',', array_fill(0, count($friendIds), '?'));
         $offset = $page * $limit;
-
-        // Sử dụng LIMIT và OFFSET trong truy vấn SQL
         $sql = "SELECT * FROM posts WHERE user_id IN ($placeholders) ORDER BY created_at DESC LIMIT ? OFFSET ?";
         $stmt = $conn->prepare($sql);
-        // Kết hợp tất cả các đối số vào một mảng
         $params = array_merge($friendIds, [$limit, $offset]);
-
-        // Sử dụng argument unpacking từ mảng đã kết hợp
         $stmt->bind_param(str_repeat('i', count($friendIds)) . 'ii', ...$params);
         $stmt->execute();
         $result = $stmt->get_result();
-        
-        if ($result) {
-            $posts = array();
 
+        $posts = array();
+        if ($result) {
             while ($row = $result->fetch_assoc()) {
+                $postId = $row['post_id'];
+                // Fetch media for each post
+                $mediaSql = "SELECT m.file_url FROM medias m JOIN post_medias pm ON m.media_id = pm.media_id WHERE pm.post_id = ?";
+                $mediaStmt = $conn->prepare($mediaSql);
+                $mediaStmt->bind_param("i", $postId);
+                $mediaStmt->execute();
+                $mediaResult = $mediaStmt->get_result();
+
+                $mediaUrls = array();
+                while ($mediaRow = $mediaResult->fetch_assoc()) {
+                    $mediaUrls[] = $mediaRow['file_url'];
+                }
+                $row['media_urls'] = $mediaUrls;
+
                 $posts[] = $row;
+                $mediaStmt->close();
             }
 
             echo json_encode(["success" => true, "posts" => $posts]);
@@ -67,10 +69,9 @@ function getFriendPosts($userId, $page = 0, $limit = 10) {
 
 header('Content-Type: application/json; charset=utf-8');
 
-// Nhận dữ liệu từ POST request
 $userId = $_POST['userId'] ?? '';
-$page = $_POST['page'] ?? 0; // Giá trị mặc định là 0
-$limit = $_POST['limit'] ?? 10; // Số lượng bài viết mỗi trang
+$page = $_POST['page'] ?? 0;
+$limit = $_POST['limit'] ?? 10;
 
-getFriendPosts($userId, $page, $limit)
+getFriendPosts($userId, $page, $limit);
 ?>
