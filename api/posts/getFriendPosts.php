@@ -2,7 +2,8 @@
 
 include_once '../../lib/DatabaseConnection.php';
 
-function getFriendPosts($userId, $page = 0, $limit = 10) {
+function getFriendPosts($userId, $page = 0, $limit = 10)
+{
     if (!is_numeric($userId) || $userId < 0) {
         echo json_encode(["success" => false, "message" => "User ID không hợp lệ"]);
         return;
