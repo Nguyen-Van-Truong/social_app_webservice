@@ -1,8 +1,7 @@
 <?php
 include_once '../../lib/DatabaseConnection.php';
 
-function getFriendPosts($userId, $page = 0, $limit = 10)
-{
+function getFriendPosts($userId, $page = 0, $limit = 10) {
     if (!is_numeric($userId) || $userId < 0) {
         echo json_encode(["success" => false, "message" => "User ID không hợp lệ"]);
         return;
@@ -25,10 +24,10 @@ function getFriendPosts($userId, $page = 0, $limit = 10)
         }
         $friendIds[] = $userId; // Include current user's ID
 
-        // Fetch posts
+        // Fetch posts and usernames
         $placeholders = implode(',', array_fill(0, count($friendIds), '?'));
         $offset = $page * $limit;
-        $sql = "SELECT * FROM posts WHERE user_id IN ($placeholders) ORDER BY created_at DESC LIMIT ? OFFSET ?";
+        $sql = "SELECT p.*, u.username FROM posts p JOIN users u ON p.user_id = u.user_id WHERE p.user_id IN ($placeholders) ORDER BY p.created_at DESC LIMIT ? OFFSET ?";
         $stmt = $conn->prepare($sql);
         $params = array_merge($friendIds, [$limit, $offset]);
         $stmt->bind_param(str_repeat('i', count($friendIds)) . 'ii', ...$params);
@@ -62,6 +61,7 @@ function getFriendPosts($userId, $page = 0, $limit = 10)
 
                 $row['isLiked'] = $likeCheckResult['isLiked'];
                 $row['likeCount'] = $likeCheckResult['likeCount'];
+                $row['username'] = $row['username']; // Add username
 
                 $posts[] = $row;
                 $mediaStmt->close();
