@@ -1,5 +1,4 @@
 <?php
-
 include_once '../../lib/DatabaseConnection.php';
 
 function getFriendPosts($userId, $page = 0, $limit = 10)
@@ -40,6 +39,7 @@ function getFriendPosts($userId, $page = 0, $limit = 10)
         if ($result) {
             while ($row = $result->fetch_assoc()) {
                 $postId = $row['post_id'];
+
                 // Fetch media for each post
                 $mediaSql = "SELECT m.file_url FROM medias m JOIN post_medias pm ON m.media_id = pm.media_id WHERE pm.post_id = ?";
                 $mediaStmt = $conn->prepare($mediaSql);
@@ -52,6 +52,16 @@ function getFriendPosts($userId, $page = 0, $limit = 10)
                     $mediaUrls[] = $mediaRow['file_url'];
                 }
                 $row['media_urls'] = $mediaUrls;
+
+                // Check if the current user has liked the post
+                $likeCheckSql = "SELECT COUNT(*) as likeCount, EXISTS(SELECT 1 FROM likes WHERE user_id = ? AND post_id = ?) as isLiked FROM likes WHERE post_id = ?";
+                $likeCheckStmt = $conn->prepare($likeCheckSql);
+                $likeCheckStmt->bind_param("iii", $userId, $postId, $postId);
+                $likeCheckStmt->execute();
+                $likeCheckResult = $likeCheckStmt->get_result()->fetch_assoc();
+
+                $row['isLiked'] = $likeCheckResult['isLiked'];
+                $row['likeCount'] = $likeCheckResult['likeCount'];
 
                 $posts[] = $row;
                 $mediaStmt->close();
