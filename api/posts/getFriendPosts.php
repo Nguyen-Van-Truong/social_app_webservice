@@ -46,6 +46,13 @@ function getFriendPosts($userId, $page = 0, $limit = 10) {
                 $mediaStmt->execute();
                 $mediaResult = $mediaStmt->get_result();
 
+                $commentCountSql = "SELECT COUNT(*) as commentCount FROM comments WHERE post_id = ?";
+                $commentCountStmt = $conn->prepare($commentCountSql);
+                $commentCountStmt->bind_param("i", $postId);
+                $commentCountStmt->execute();
+                $commentCountResult = $commentCountStmt->get_result()->fetch_assoc();
+                $row['commentCount'] = $commentCountResult['commentCount'];
+
                 $mediaUrls = array();
                 while ($mediaRow = $mediaResult->fetch_assoc()) {
                     $mediaUrls[] = $mediaRow['file_url'];
