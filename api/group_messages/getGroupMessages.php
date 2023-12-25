@@ -30,9 +30,9 @@ function getGroupMessages($groupId, $userId, $page = 0, $limit = 10) {
         $offset = $page * $limit;
 
         // Truy vấn để lấy tin nhắn
-        $sql = "SELECT * FROM group_messages WHERE group_id = ? AND retracted = 0 ORDER BY created_at DESC LIMIT ? OFFSET ?";
+        $sql = "SELECT * FROM group_messages WHERE group_id = ? AND retracted = 0 ORDER BY created_at ASC";
         $stmt = $conn->prepare($sql);
-        $stmt->bind_param("iii", $groupId, $limit, $offset);
+        $stmt->bind_param("i", $groupId);
         $stmt->execute();
         $result = $stmt->get_result();
 
