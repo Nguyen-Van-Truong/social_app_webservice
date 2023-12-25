@@ -1,6 +1,7 @@
 <?php
 
 include_once '../../lib/DatabaseConnection.php';
+include_once '../../api/users/MailSender.php';
 
 function sendVerificationCode($email) {
     $db = new DatabaseConnection();
@@ -32,7 +33,12 @@ function sendVerificationCode($email) {
     $resetStmt->execute();
 
     // Gửi mã xác nhận đến email người dùng
-    // TODO: Thêm hàm gửi email tại đây
+    $subject = "Mã Xác Nhận Từ SocialApp";
+    $body = "Mã xác nhận của bạn là: $code";
+    if (!MailSender::sendMail($email, $subject, $body)) {
+        echo json_encode(["success" => false, "message" => "Không thể gửi email."]);
+        return;
+    }
 
     echo json_encode(["success" => true, "message" => "Mã xác nhận đã được gửi đến email."]);
 }
