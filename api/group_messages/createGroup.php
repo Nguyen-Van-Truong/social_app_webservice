@@ -83,7 +83,7 @@ function createGroup($userId, $nameGroup, $description) {
                     return;
                 }
                 $stmtUpdateRole->close();
-                }
+            }
                 
             }
         }
