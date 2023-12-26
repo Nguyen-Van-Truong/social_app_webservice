@@ -6,7 +6,17 @@ function getComments($postId, $sortOrder) {
     $conn = $db->connect();
 
     $orderClause = $sortOrder == "newest" ? "DESC" : "ASC";
-    $stmt = $conn->prepare("SELECT * FROM comments WHERE post_id = ? ORDER BY created_at $orderClause");
+
+    // Join comments table with users and medias table to fetch user and media details
+    $stmt = $conn->prepare("SELECT c.comment_id, c.post_id, c.user_id, u.username, c.comment, c.created_at, 
+                            c.is_edited, c.edited_at, c.is_retracted, c.retracted_at, c.media_id, 
+                            m.file_url, m.file_type, m.file_size 
+                            FROM comments c
+                            LEFT JOIN users u ON c.user_id = u.user_id
+                            LEFT JOIN medias m ON c.media_id = m.media_id
+                            WHERE c.post_id = ? 
+                            ORDER BY c.created_at $orderClause");
+
     $stmt->bind_param("i", $postId);
     $stmt->execute();
     $result = $stmt->get_result();
