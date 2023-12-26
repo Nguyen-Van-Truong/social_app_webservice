@@ -18,7 +18,7 @@ function getFileType($extension) {
     }
 }
 
-function createGroup($userId, $nameGroup, $description) {
+function updateImageGroup($userId, $nameGroup, $description) {
     $db = new DatabaseConnection();
     $conn = $db->connect();
 
@@ -103,5 +103,5 @@ header('Content-Type: application/json; charset=utf-8');
 $userId = $_POST['userId'] ?? '';
 $name = $_POST['name'] ?? '';
 $description = $_POST['description'] ?? '';
-createGroup($userId, $name, $description);
+updateImageGroup($userId, $name, $description);
 ?>
