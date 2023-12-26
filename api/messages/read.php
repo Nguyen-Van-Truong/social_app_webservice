@@ -8,7 +8,7 @@ function getChatBetweenTwoUsers($user1, $user2) {
     $response = array();
     $response["messages"] = array();
 
-    $stmt = $conn->prepare("SELECT * FROM messages WHERE (sender_id = ? AND receiver_id = ?) OR (sender_id = ? AND receiver_id = ?) ORDER BY created_at");
+    $stmt = $conn->prepare("SELECT m.message_id, m.sender_id, m.receiver_id, m.message, m.retracted, m.created_at, m.status, m.retracted_at, m.deleted_at, me.media_id, me.file_url, me.file_type, me.file_size, me.uploaded_at FROM messages m LEFT JOIN message_medias mm ON m.message_id = mm.message_id LEFT JOIN medias me ON mm.media_id = me.media_id WHERE (m.sender_id = ? AND m.receiver_id = ?) OR (m.sender_id = ? AND m.receiver_id = ?) ORDER BY m.created_at");
     $stmt->bind_param("iiii", $user1, $user2, $user2, $user1);
     if ($stmt->execute()) {
         $result = $stmt->get_result();
