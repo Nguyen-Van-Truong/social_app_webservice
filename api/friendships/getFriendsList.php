@@ -13,7 +13,23 @@ function getFriendsList($userId, $sortOrder) {
 
     $friends = array();
     while ($row = $result->fetch_assoc()) {
-        array_push($friends, $row);
+        $friendUserId = $row['user_id1'] == $userId ? $row['user_id2'] : $row['user_id1'];
+
+        $stmt2 = $conn->prepare("SELECT u.*, m.file_url as profile_image_url FROM users u LEFT JOIN medias m ON u.profile_image_id = m.media_id WHERE u.user_id = ?");
+        $stmt2->bind_param("i", $friendUserId);
+        $stmt2->execute();
+        $friendInfo = $stmt2->get_result()->fetch_assoc();
+
+        if ($friendInfo) {
+            $friendData = [
+                'user_id' => $friendUserId,
+                'name' => $friendInfo['username'],
+                'profile_image_url' => $friendInfo['profile_image_url'] // URL of the profile image
+            ];
+            array_push($friends, $friendData);
+        }
+
+        $stmt2->close();
     }
 
     $stmt->close();
