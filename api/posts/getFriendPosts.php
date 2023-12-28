@@ -24,10 +24,10 @@ function getFriendPosts($userId, $page = 0, $limit = 10) {
         }
         $friendIds[] = $userId; // Include current user's ID
 
-        // Fetch posts and usernames
+        // Fetch posts, usernames, and profile image URLs
         $placeholders = implode(',', array_fill(0, count($friendIds), '?'));
         $offset = $page * $limit;
-        $sql = "SELECT p.*, u.username FROM posts p JOIN users u ON p.user_id = u.user_id WHERE p.user_id IN ($placeholders) ORDER BY p.created_at DESC LIMIT ? OFFSET ?";
+        $sql = "SELECT p.*, u.username, m.file_url as profile_image_url FROM posts p JOIN users u ON p.user_id = u.user_id LEFT JOIN medias m ON u.profile_image_id = m.media_id WHERE p.user_id IN ($placeholders) ORDER BY p.created_at DESC LIMIT ? OFFSET ?";
         $stmt = $conn->prepare($sql);
         $params = array_merge($friendIds, [$limit, $offset]);
         $stmt->bind_param(str_repeat('i', count($friendIds)) . 'ii', ...$params);
@@ -69,6 +69,7 @@ function getFriendPosts($userId, $page = 0, $limit = 10) {
                 $row['isLiked'] = $likeCheckResult['isLiked'];
                 $row['likeCount'] = $likeCheckResult['likeCount'];
                 $row['username'] = $row['username']; // Add username
+                $row['profile_image_url'] = $row['profile_image_url']; // Add profile image URL
 
                 $posts[] = $row;
                 $mediaStmt->close();
