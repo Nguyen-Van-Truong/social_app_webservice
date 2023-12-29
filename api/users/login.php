@@ -7,7 +7,7 @@ function loginUser($email, $password) {
     $conn = $db->connect();
 
     // Prepare the query with a JOIN to include the profile image URL
-    $stmt = $conn->prepare("SELECT u.user_id, u.email, u.username, u.password_hash, m.file_url as profile_image_url 
+    $stmt = $conn->prepare("SELECT u.user_id, u.email, u.username, u.password_hash, u.role, m.file_url as profile_image_url 
                              FROM users u 
                              LEFT JOIN medias m ON u.profile_image_id = m.media_id 
                              WHERE u.email = ?");
@@ -32,7 +32,8 @@ function loginUser($email, $password) {
                     "token" => $token,
                     "email" => $user['email'],
                     "username" => $user['username'],
-                    "profile_image_url" => $user['profile_image_url'] // Add profile image URL
+                    "profile_image_url" => $user['profile_image_url'],
+                    "role" => $user['role']
                 ]);
             } else {
                 echo json_encode(["success" => false, "message" => "Sai mật khẩu"]);
