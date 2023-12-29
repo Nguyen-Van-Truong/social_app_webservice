@@ -1,17 +1,14 @@
 <?php
 include_once '../../lib/DatabaseConnection.php';
 
-function getMember( $groupId) {
+function getRoleInGroup( $groupId, $userId) {
     $db = new DatabaseConnection();
     $conn = $db->connect();
 
 
-    $stmt = $conn->prepare("SELECT u.user_id, u.username, m.file_url, gm.role
-    FROM users u
-    JOIN group_members gm ON u.user_id = gm.user_id LEFT JOIN medias m ON m.media_id = u.profile_image_id
-    WHERE gm.group_id = ?;");
+    $stmt = $conn->prepare("SELECT role FROM group_members WHERE group_id = ? AND user_id = ?");
 
-    $stmt->bind_param("i",  $groupId);
+    $stmt->bind_param("ii",  $groupId, $userId);
     $stmt->execute();
     $result = $stmt->get_result();
 
@@ -23,14 +20,14 @@ function getMember( $groupId) {
     $stmt->close();
     $db->close();
 
-    echo json_encode(["success" => true, "friends" => $friends]);
+    echo json_encode(["success" => true, "data" => $friends]);
 }
 
 header('Content-Type: application/json; charset=utf-8');
 
 if ($_SERVER['REQUEST_METHOD'] == 'GET') {
     $groupId = isset($_GET['groupId']) ? (int) $_GET['groupId'] : 0;
-
-    getMember($groupId);
+    $userId = isset($_GET['userId']) ? (int) $_GET['userId'] : 0;
+    getRoleInGroup($groupId, $userId);
 }
 ?>

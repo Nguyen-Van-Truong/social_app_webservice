@@ -6,9 +6,9 @@ function getFriendNotInGroup($userId, $groupId) {
     $conn = $db->connect();
 
 
-    $stmt = $conn->prepare("SELECT u.user_id, u.username, u.profile_image_id
+    $stmt = $conn->prepare("SELECT u.user_id, u.username, m.file_url
     FROM users u
-    JOIN friendships f ON (u.user_id = f.user_id1 OR u.user_id = f.user_id2)
+    JOIN friendships f ON (u.user_id = f.user_id1 OR u.user_id = f.user_id2) LEFT JOIN medias m ON m.media_id =  u.profile_image_id
     WHERE ((f.user_id1 = ? AND u.user_id != ?) OR (f.user_id2 = ? AND u.user_id != ?))
       AND f.status = 'accepted'
       AND u.user_id NOT IN (
