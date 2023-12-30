@@ -45,7 +45,7 @@ function getSuggestedFriends($userId, $sortOrder, $page = 0, $limit = 10) {
     while ($row = $result->fetch_assoc()) {
         $suggestedFriendData = [
             'user_id' => $row['user_id'],
-            'name' => $row['username'],
+            'username' => $row['username'],
             'profile_image_url' => $row['profile_image_url'],
             'mutual_friends' => $row['mutual_friends']
         ];

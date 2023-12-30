@@ -31,7 +31,7 @@ function getFriendsList($userId, $sortOrder, $page = 0, $limit = 10) {
         if ($friendInfo) {
             $friendData = [
                 'user_id' => $friendUserId,
-                'name' => $friendInfo['username'],
+                'username' => $friendInfo['username'],
                 'profile_image_url' => $friendInfo['profile_image_url']
             ];
             array_push($friends, $friendData);
