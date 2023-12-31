@@ -1,22 +1,21 @@
 <?php
 include_once '../../lib/DatabaseConnection.php';
 
-function removeGroupMember($groupId, $userId) {
+function removeGroup($groupId) {
     $db = new DatabaseConnection();
     $conn = $db->connect();
 
     try {
-        // Kiểm tra xem người dùng đã là thành viên của nhóm chưa
-        $checkExistSql = "SELECT * FROM group_members WHERE group_id = ? AND user_id = ?";
+        $checkExistSql = "SELECT * FROM groups WHERE group_id =?";
         $checkExistStmt = $conn->prepare($checkExistSql);
-        $checkExistStmt->bind_param("ii", $groupId, $userId);
+        $checkExistStmt->bind_param("i", $groupId);
         $checkExistStmt->execute();
         $existResult = $checkExistStmt->get_result();
 
         if ($existResult->num_rows > 0) {
-            $removeSql = "DELETE FROM group_members WHERE group_id = ? AND user_id = ?";
+            $removeSql = "DELETE FROM groups WHERE group_id = ?";
             $removeStmt = $conn->prepare($removeSql);
-            $removeStmt->bind_param("ii", $groupId, $userId);
+            $removeStmt->bind_param("i", $groupId);
             $removeStmt->execute();
             $conn->commit();
         }
@@ -31,10 +30,9 @@ header('Content-Type: application/json; charset=utf-8');
 
 // Nhận dữ liệu từ POST request
 $groupId = isset($_POST['groupId']) ? (int)$_POST['groupId'] : null;
-$userId = isset($_POST['userId']) ? (int)$_POST['userId'] : null;
 
-if ($groupId && $userId) {
-    removeGroupMember($groupId, $userId);
+if ($groupId) {
+    removeGroup($groupId);
 } else {
     echo json_encode(["success" => false, "message" => "Thiếu thông tin nhóm hoặc người dùng"]);
 }

@@ -30,7 +30,12 @@ function getGroupMessages($groupId, $userId, $page = 0, $limit = 10) {
         $offset = $page * $limit;
 
         // Truy vấn để lấy tin nhắn
-        $sql = "SELECT * FROM group_messages WHERE group_id = ? AND retracted = 0 ORDER BY created_at ASC";
+        $sql = "SELECT gm.message_id, gm.group_id, gm.sender_id, gm.message, m.file_url , me.file_url as image
+        FROM group_messages gm JOIN users u ON gm.sender_id = u.user_id 
+        LEFT JOIN medias m ON m.media_id = u.profile_image_id 
+        LEFT JOIN group_message_medias gmm ON gm.message_id = gmm.group_message_id
+        LEFT JOIN medias me ON me.media_id = gmm.media_id
+        WHERE group_id = ? AND retracted = 0 ORDER BY gm.created_at ASC";
         $stmt = $conn->prepare($sql);
         $stmt->bind_param("i", $groupId);
         $stmt->execute();
