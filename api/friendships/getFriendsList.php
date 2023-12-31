@@ -1,13 +1,21 @@
 <?php
 include_once '../../lib/DatabaseConnection.php';
 
-function getFriendsList($userId, $sortOrder) {
+function getFriendsList($userId, $sortOrder, $page = 0, $limit = 10) {
+    if (!is_numeric($userId) || $userId < 0) {
+        echo json_encode(["success" => false, "message" => "User ID không hợp lệ"]);
+        return;
+    }
+
     $db = new DatabaseConnection();
     $conn = $db->connect();
 
     $orderClause = $sortOrder == "recent" ? "DESC" : "ASC";
-    $stmt = $conn->prepare("SELECT * FROM friendships WHERE (user_id1 = ? OR user_id2 = ?) AND status = 'accepted' ORDER BY created_at $orderClause");
-    $stmt->bind_param("ii", $userId, $userId);
+    $offset = $page * $limit;
+
+    $sql = "SELECT * FROM friendships WHERE (user_id1 = ? OR user_id2 = ?) AND status = 'accepted' ORDER BY created_at $orderClause LIMIT ? OFFSET ?";
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("iiii", $userId, $userId, $limit, $offset);
     $stmt->execute();
     $result = $stmt->get_result();
 
@@ -23,8 +31,8 @@ function getFriendsList($userId, $sortOrder) {
         if ($friendInfo) {
             $friendData = [
                 'user_id' => $friendUserId,
-                'name' => $friendInfo['username'],
-                'profile_image_url' => $friendInfo['profile_image_url'] // URL of the profile image
+                'username' => $friendInfo['username'],
+                'profile_image_url' => $friendInfo['profile_image_url']
             ];
             array_push($friends, $friendData);
         }
@@ -43,7 +51,9 @@ header('Content-Type: application/json; charset=utf-8');
 if ($_SERVER['REQUEST_METHOD'] == 'GET') {
     $userId = isset($_GET['userId']) ? (int) $_GET['userId'] : 0;
     $sortOrder = isset($_GET['sortOrder']) ? $_GET['sortOrder'] : 'recent';
+    $page = isset($_GET['page']) ? (int) $_GET['page'] : 0;
+    $limit = isset($_GET['limit']) ? (int) $_GET['limit'] : 10;
 
-    getFriendsList($userId, $sortOrder);
+    getFriendsList($userId, $sortOrder, $page, $limit);
 }
 ?>

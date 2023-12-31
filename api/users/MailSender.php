@@ -35,7 +35,9 @@ class MailSender {
             $mail->send();
             return true;
         } catch (Exception $e) {
-            return false;
+            // Log or return the detailed error message
+            error_log("Mail error: " . $e->getMessage());
+            return "Mail error: " . $e->getMessage();
         }
     }
 }
