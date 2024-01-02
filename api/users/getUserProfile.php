@@ -1,8 +1,8 @@
 <?php
 include_once '../../lib/DatabaseConnection.php';
 
-function getUserProfileAndPosts($userId, $page = 0, $limit = 10) {
-    if (!is_numeric($userId) || $userId <= 0) {
+function getUserProfile($viewerId, $profileOwnerId, $page = 0, $limit = 10) {
+    if (!is_numeric($profileOwnerId) || $profileOwnerId <= 0) {
         echo json_encode(["success" => false, "message" => "Invalid user ID"]);
         return;
     }
@@ -20,7 +20,7 @@ function getUserProfileAndPosts($userId, $page = 0, $limit = 10) {
                                 LEFT JOIN medias m1 ON u.profile_image_id = m1.media_id
                                 LEFT JOIN medias m2 ON u.background_image_id = m2.media_id
                                 WHERE u.user_id = ?");
-    $userStmt->bind_param("iiii", $userId, $userId, $userId, $userId);
+    $userStmt->bind_param("iiii", $profileOwnerId, $profileOwnerId, $profileOwnerId, $profileOwnerId);
     $userStmt->execute();
     $userResult = $userStmt->get_result();
     $userStmt->close();
@@ -31,6 +31,20 @@ function getUserProfileAndPosts($userId, $page = 0, $limit = 10) {
     }
 
     $userData = $userResult->fetch_assoc();
+
+    // Determine the friendship status between the viewer and profile owner
+    $friendshipStatus = 'none'; // default status
+    if ($viewerId != $profileOwnerId) {
+        $friendshipStmt = $conn->prepare("SELECT status FROM friendships WHERE (user_id1 = ? AND user_id2 = ?) OR (user_id1 = ? AND user_id2 = ?)");
+        $friendshipStmt->bind_param("iiii", $viewerId, $profileOwnerId, $profileOwnerId, $viewerId);
+        $friendshipStmt->execute();
+        $friendshipResult = $friendshipStmt->get_result();
+        if ($row = $friendshipResult->fetch_assoc()) {
+            $friendshipStatus = $row['status'];
+        }
+        $friendshipStmt->close();
+    }
+    $userData['friendship_status'] = $friendshipStatus;
 
     // Fetch user's posts with pagination
     $offset = $page * $limit;
@@ -46,7 +60,7 @@ function getUserProfileAndPosts($userId, $page = 0, $limit = 10) {
                 ORDER BY p.created_at DESC
                 LIMIT ? OFFSET ?";
     $postStmt = $conn->prepare($postSql);
-    $postStmt->bind_param("iiii", $userId, $userId, $limit, $offset);
+    $postStmt->bind_param("iiii", $userId, $profileOwnerId, $limit, $offset);
     $postStmt->execute();
     $postResult = $postStmt->get_result();
     $postStmt->close();
@@ -70,9 +84,10 @@ function getUserProfileAndPosts($userId, $page = 0, $limit = 10) {
 
 header('Content-Type: application/json; charset=utf-8');
 
-$userId = $_POST['userId'] ?? 0;
+$viewerId = $_POST['viewerId'] ?? 0;
+$profileOwnerId = $_POST['userId'] ?? 0;
 $page = isset($_POST['page']) ? (int)$_POST['page'] : 0;
-$limit = isset($_POST['limit']) ? (int)$_POST['limit'] : 2;
+$limit = isset($_POST['limit']) ? (int)$_POST['limit'] : 10;
 
-getUserProfileAndPosts($userId, $page, $limit);
+getUserProfile($viewerId, $profileOwnerId, $page, $limit);
 ?>
