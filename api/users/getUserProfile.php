@@ -33,18 +33,26 @@ function getUserProfile($viewerId, $profileOwnerId, $page = 0, $limit = 10) {
     $userData = $userResult->fetch_assoc();
 
     // Determine the friendship status between the viewer and profile owner
+// Determine the friendship status and who sent the friend request
     $friendshipStatus = 'none'; // default status
+    $requestSender = null; // this will hold the ID of the friend request sender
     if ($viewerId != $profileOwnerId) {
-        $friendshipStmt = $conn->prepare("SELECT status FROM friendships WHERE (user_id1 = ? AND user_id2 = ?) OR (user_id1 = ? AND user_id2 = ?)");
+        $friendshipStmt = $conn->prepare("SELECT status, user_id1 FROM friendships WHERE (user_id1 = ? AND user_id2 = ?) OR (user_id1 = ? AND user_id2 = ?)");
         $friendshipStmt->bind_param("iiii", $viewerId, $profileOwnerId, $profileOwnerId, $viewerId);
         $friendshipStmt->execute();
         $friendshipResult = $friendshipStmt->get_result();
         if ($row = $friendshipResult->fetch_assoc()) {
             $friendshipStatus = $row['status'];
+            if ($friendshipStatus === 'requested') {
+                // Determine who sent the friend request
+                $requestSender = $row['user_id1'];
+            }
         }
         $friendshipStmt->close();
     }
     $userData['friendship_status'] = $friendshipStatus;
+    $userData['request_sender'] = $requestSender;
+
 
     // Fetch user's posts with pagination
     $offset = $page * $limit;
