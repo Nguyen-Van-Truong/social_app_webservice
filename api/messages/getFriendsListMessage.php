@@ -1,55 +1,72 @@
 <?php
 include_once '../../lib/DatabaseConnection.php';
 
-function getFriendsMessages($userId) {
+function getFriendsListMessage($userId, $sortOrder) {
     $db = new DatabaseConnection();
     $conn = $db->connect();
 
+    $orderClause = $sortOrder == "recent" ? "DESC" : "ASC";
     $stmt = $conn->prepare("SELECT
-                                M.sender_id,
-                                M.receiver_id,
-                                M.message,
-                                M.created_at
-                            FROM
-                                messages M
-                            JOIN
-                                friendships F ON (M.sender_id = F.user_id1 AND M.receiver_id = F.user_id2)
-                                             OR (M.sender_id = F.user_id2 AND M.receiver_id = F.user_id1)
-                            WHERE
-                                (F.user_id1 = ? OR F.user_id2 = ?)
-                                AND F.status = 'accepted'
-                                AND (M.sender_id = ? OR M.receiver_id = ?)
-                            ORDER BY
-                                M.created_at DESC");
+        U.user_id,
+        U.username,
+        M.file_url,
+        LM.latest_message_time,
+        LM.latest_message
+    FROM
+        friendships F
+    JOIN
+        users U ON F.user_id1 = U.user_id OR F.user_id2 = U.user_id
+    LEFT JOIN
+        medias M ON U.profile_image_id = M.media_id
+    LEFT JOIN
+        (
+            SELECT
+                message_data.friend_id,
+                message_data.latest_message_time,
+                M2.message AS latest_message
+            FROM
+                (
+                    SELECT
+                        IF(sender_id = ?, receiver_id, sender_id) AS friend_id,
+                        MAX(created_at) AS latest_message_time
+                    FROM
+                        messages
+                    WHERE
+                        sender_id = ? OR receiver_id = ?
+                    GROUP BY
+                        friend_id
+                ) AS message_data
+            JOIN messages M2 ON (M2.sender_id = message_data.friend_id OR M2.receiver_id = message_data.friend_id)
+                            AND M2.created_at = message_data.latest_message_time
+        ) LM ON U.user_id = LM.friend_id
+    WHERE
+        (F.user_id1 = ? OR F.user_id2 = ?)
+        AND F.status = 'accepted'
+        AND U.user_id != ?
+    ORDER BY 
+        LM.latest_message_time $orderClause");
 
-    if (!$stmt) {
-        echo json_encode(["success" => false, "error" => $conn->error]);
-        return;
-    }
-
-    $stmt->bind_param("iiii", $userId, $userId, $userId, $userId);
+    $stmt->bind_param("iiiiii", $userId, $userId, $userId, $userId, $userId, $userId);
     $stmt->execute();
     $result = $stmt->get_result();
 
-    $messages = array();
+    $friends = array();
     while ($row = $result->fetch_assoc()) {
-        array_push($messages, $row);
+        array_push($friends, $row);
     }
 
     $stmt->close();
     $db->close();
 
-    echo json_encode(["success" => true, "messages" => $messages]);
+    echo json_encode(["success" => true, "friends" => $friends]);
 }
 
 header('Content-Type: application/json; charset=utf-8');
 
 if ($_SERVER['REQUEST_METHOD'] == 'GET') {
-    $userId = isset($_GET['userId']) ? (int)$_GET['userId'] : 0;
-    if ($userId > 0) {
-        getFriendsMessages($userId);
-    } else {
-        echo json_encode(["success" => false, "error" => "Invalid user ID"]);
-    }
+    $userId = isset($_GET['userId']) ? (int) $_GET['userId'] : 0;
+    $sortOrder = isset($_GET['sortOrder']) ? $_GET['sortOrder'] : 'recent';
+
+    getFriendsListMessage($userId, $sortOrder);
 }
 ?>
