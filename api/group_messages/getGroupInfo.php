@@ -26,7 +26,7 @@ function getGroupInfo($groupId) {
     $stmt->close();
     $db->close();
 
-    echo json_encode(["success" => true, "group_info" => $groupInfo]);
+    echo json_encode(["success" => true, "groups_info" => $groupInfo]);
 }
 
 header('Content-Type: application/json; charset=utf-8');
